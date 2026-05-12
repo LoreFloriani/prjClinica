@@ -101,7 +101,17 @@ app.get('/animali', async (req, res) => {
                 <h2>${animale.name}</h2>
                 <p>${animale.specie}</p>
                 <p>${animale.proprietario}</p>
-                <span class="badge badge-${animale.stato === 'Stabile' ? 'stabile' : animale.stato === 'Critico' ? 'critico' : 'osservazione'}">${animale.stato}</span>
+                <select
+                    class="badge badge-${animale.stato === 'Stabile' ? 'stabile' : animale.stato === 'Critico' ? 'critico' : 'osservazione'}"
+                    onchange="
+                        const map = {'Stabile':'stabile','Critico':'critico','In Osservazione':'osservazione'};
+                        this.className = 'badge badge-' + map[this.value];
+                        window.location.href='/stato/${animale.id}/' + this.value;
+                    ">
+                    <option value="Stabile"         ${animale.stato === 'Stabile' ? 'selected' : ''}>Stabile</option>
+                    <option value="Critico"         ${animale.stato === 'Critico' ? 'selected' : ''}>Critico</option>
+                    <option value="In Osservazione" ${animale.stato === 'In Osservazione' ? 'selected' : ''}>In Osservazione</option>
+                </select>
                 <button onclick="window.location.href='/dimetti/${animale.id}'">dimetti</button>
             </div>`
         })
@@ -113,6 +123,11 @@ app.get('/animali', async (req, res) => {
             <button class="btn-secondario" onclick="window.location.href='/dimetti/'">Dimetti tutti stabili</button>
         </div>`
     res.send(html + footerHtml)
+})
+
+app.get('/stato/:id/:stato', async (req, res) => {
+    await Animale.findByIdAndUpdate(req.params.id, { stato: req.params.stato })
+    res.redirect('/animali')
 })
 
 app.get(['/dimetti/:id', '/dimetti'], async (req, res) => {
@@ -140,7 +155,7 @@ app.get('/animali/dimessi', async (req, res) => {
                 <h2>${animale.name}</h2>
                 <p>${animale.specie}</p>
                 <p>${animale.proprietario}</p>
-                <span class="badge badge-${animale.stato === 'Stabile' ? 'stabile' : animale.stato === 'Critico' ? 'critico' : 'osservazione'}">${animale.stato}</span>
+                <span class="badge badge-dimesso">${animale.stato}</span>
 
             </div>`
         })

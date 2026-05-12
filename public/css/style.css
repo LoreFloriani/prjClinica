@@ -114,6 +114,12 @@ main,
     transition: background 0.15s;
 }
 
+.animale select {
+    /*appearance: none;*/
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
 .animale button:hover {
     background: #f0ede8;
 }
@@ -160,6 +166,11 @@ main,
 }
 
 .badge-osservazione {
+    background: #faeeda;
+        color: #854f0b;
+    }
+    
+    .badge-dimesso {
     background: #e6f1fb;
     color: #185fa5;
 }
