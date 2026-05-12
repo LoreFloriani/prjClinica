@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const port = 3000
 app.use(express.urlencoded({ extended: true }))
+app.use(express.static('public'))
 
 //upload file
 const multer = require("multer")
@@ -53,7 +54,7 @@ const headerHtml = `
 
     <title>Clinica Animali</title>
 
-    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -64,9 +65,11 @@ const headerHtml = `
         <button onclick="window.location.href='/animali'">Lista pazienti</button>
         <button onclick="window.location.href='/animali/dimessi'">Dimessi</button>
     </nav>
-</header>`
+</header>
+<main>`
 
 const footerHtml = `
+</main>
 </body>
 </html>`
 
@@ -85,20 +88,23 @@ app.get('/animali', async (req, res) => {
             <div class="animale ${animale.stato}">
                 <img src="${animale.immagine}" onerror="this.src='/uploads/default.png'" alt="${animale.name}">
                 <h2>${animale.name}</h2>
-                <p>Specie: ${animale.specie}</p>
-                <p>Proprietario: ${animale.proprietario}</p>
-                <p>Stato: ${animale.stato}</p>
+                <p>${animale.specie}</p>
+                <p>${animale.proprietario}</p>
+                <span class="badge badge-${animale.stato === 'Stabile' ? 'stabile' : animale.stato === 'Critico' ? 'critico' : 'osservazione'}">${animale.stato}</span>
                 <button onclick="window.location.href='/dimetti/${animale.id}'">dimetti</button>
             </div>`
         })
 
     html += `</div>`
-    html += `<button onclick="window.location.href='/aggiungi'">Aggiungi Animale</button>
-            <button onclick="window.location.href='/dimetti'">Dimetti tutti stabili</button>`
+    html += `
+        <div class="azioni">
+            <button class="btn-primario" onclick="window.location.href='/aggiungi'">+ Aggiungi Animale</button>
+            <button class="btn-secondario" onclick="window.location.href='/dimetti/'">Dimetti tutti stabili</button>
+        </div>`
     res.send(html + footerHtml)
 })
 
-app.get('/dimetti/:id', async (req, res) => {
+app.get(['/dimetti/:id', '/dimetti'], async (req, res) => {
     if (req.params.id) {
         await Animale.findByIdAndUpdate(req.params.id, { stato: "Dimesso" })
     } else{
@@ -123,13 +129,14 @@ app.get('/animali/dimessi', async (req, res) => {
             <div class="animale">
                 <img src="${animale.immagine}" onerror="this.src='/uploads/default.png'" alt="${animale.name}">
                 <h2>${animale.name}</h2>
-                <p>Specie: ${animale.specie}</p>
-                <p>Proprietario: ${animale.proprietario}</p>
+                <p>${animale.specie}</p>
+                <p>${animale.proprietario}</p>
+                <span class="badge badge-${animale.stato === 'Stabile' ? 'stabile' : animale.stato === 'Critico' ? 'critico' : 'osservazione'}">${animale.stato}</span>
+
             </div>`
         })
 
     html += `</div>`
-    html += `<a href="/animali">Torna alla lista dei pazienti</a>`
     res.send(html + footerHtml)
 })
 
@@ -139,15 +146,12 @@ app.get('/aggiungi', (req, res) => {
 
         <label for="name">Nome</label>
         <input type="text" id="name" name="name" required>
-        <br><br>
 
         <label for="specie">Specie</label>
         <input type="text" id="specie" name="specie" required>
-        <br><br>
 
         <label for="proprietario">Proprietario</label>
         <input type="text" id="proprietario" name="proprietario" required>
-        <br><br>
 
         <label for="stato">Stato</label>
         <select id="stato" name="stato" required>
@@ -155,11 +159,9 @@ app.get('/aggiungi', (req, res) => {
             <option value="Critico">Critico</option>
             <option value="In Osservazione">In Osservazione</option>
         </select>
-        <br><br>
 
         <label for="immagine">Immagine</label>
         <input type="file" id="immagine" name="immagine" accept="image/*">
-        <br><br>
 
         <button type="submit">Salva</button>
 
