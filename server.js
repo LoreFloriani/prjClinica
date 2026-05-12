@@ -79,6 +79,17 @@ app.get('/', (req, res) => {
 
 app.get('/animali', async (req, res) => {
     let animali = await Animale.find()
+    const ordine = {
+        "Critico": 1,
+        "In Osservazione": 2,
+        "Stabile": 3,
+        "Dimesso": 4
+    };
+
+    animali.sort((a, b) => {
+        return ordine[a.stato] - ordine[b.stato];
+    });
+
     let html = headerHtml + `<div class="container">`
 
 
@@ -108,12 +119,10 @@ app.get(['/dimetti/:id', '/dimetti'], async (req, res) => {
     if (req.params.id) {
         await Animale.findByIdAndUpdate(req.params.id, { stato: "Dimesso" })
     } else{
-        let animali = await Animale.find()
-        animali.filter(animale => animale.stato === "Stabile")
-            .forEach(async animale => {
-                await Animale.findByIdAndUpdate(animale.id, { stato: "Dimesso" })
-            })
-        
+        await Animale.updateMany(
+            { stato: "Stabile" },
+            { stato: "Dimesso" }
+        )
     }
     res.redirect('/animali')
 })
