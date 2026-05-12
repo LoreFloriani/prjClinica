@@ -8,14 +8,14 @@ app.use(express.urlencoded({ extended: true }))
 const multer = require("multer")
 const path = require("path")
 
-app.use("/uploads", express.static("uploads"))
+app.use("/uploads", express.static("public/uploads"))
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, "public/uploads/")
     },
     filename: function (req, file, cb) {
-        const nomeAnimale = req.body.nome
+        const nomeAnimale = req.body.name
         const estensione = path.extname(file.originalname)
         const now = Date.now()
         const nomeFile = nomeAnimale + "-" + now + estensione
@@ -43,21 +43,47 @@ const animaleSchema = new mongoose.Schema({
 const Animale = mongoose.model('Animale', animaleSchema)
 
 //Rotte
+
+const headerHtml = `
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Clinica Animali</title>
+
+    <link rel="stylesheet" href="public/css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>Clinica Animali</h1>
+
+    <nav>
+        <button onclick="window.location.href='/animali'">Lista pazienti</button>
+        <button onclick="window.location.href='/animali/dimessi'">Dimessi</button>
+    </nav>
+</header>`
+
+const footerHtml = `
+</body>
+</html>`
+
 app.get('/', (req, res) => {
     res.redirect('/animali')
 })
 
 app.get('/animali', async (req, res) => {
     let animali = await Animale.find()
-    let html = `<div class="container">`
+    let html = headerHtml + `<div class="container">`
 
 
     animali.filter(animale => animale.stato !== "Dimesso")
         .forEach(animale => {
-            let imgPath = animale.immagine ? animale.immagine : "/public/uploads/default.png"
             html += `
             <div class="animale ${animale.stato}">
-                <img src="${imgPath}" alt="${animale.name}">
+                <img src="${animale.immagine}" onerror="this.src='/uploads/default.png'" alt="${animale.name}">
                 <h2>${animale.name}</h2>
                 <p>Specie: ${animale.specie}</p>
                 <p>Proprietario: ${animale.proprietario}</p>
@@ -68,9 +94,8 @@ app.get('/animali', async (req, res) => {
 
     html += `</div>`
     html += `<button onclick="window.location.href='/aggiungi'">Aggiungi Animale</button>
-            <button onclick="window.location.href='/dimetti'">Dimetti tutti stabili</button>
-            <a href="/animali/dimessi">Visualizza animali dimessi</a>`
-    res.send(html)
+            <button onclick="window.location.href='/dimetti'">Dimetti tutti stabili</button>`
+    res.send(html + footerHtml)
 })
 
 app.get('/dimetti/:id', async (req, res) => {
@@ -79,7 +104,7 @@ app.get('/dimetti/:id', async (req, res) => {
     } else{
         let animali = await Animale.find()
         animali.filter(animale => animale.stato === "Stabile")
-            .forEach(animale => {
+            .forEach(async animale => {
                 await Animale.findByIdAndUpdate(animale.id, { stato: "Dimesso" })
             })
         
@@ -89,29 +114,27 @@ app.get('/dimetti/:id', async (req, res) => {
 
 app.get('/animali/dimessi', async (req, res) => {
     let animali = await Animale.find()
-    let html = `<div class="container">`
+    let html = headerHtml + `<div class="container">`
 
 
     animali.filter(animale => animale.stato === "Dimesso")
         .forEach(animale => {
-            let imgPath = animale.immagine ? animale.immagine : "/uploads/default.png"
             html += `
             <div class="animale">
-                img src="${imgPath}" alt="${animale.name}">
+                <img src="${animale.immagine}" onerror="this.src='/uploads/default.png'" alt="${animale.name}">
                 <h2>${animale.name}</h2>
                 <p>Specie: ${animale.specie}</p>
                 <p>Proprietario: ${animale.proprietario}</p>
-                <button onclick="window.location.href='/dimetti/${animale.id}'">dimetti</button>
             </div>`
         })
 
     html += `</div>`
     html += `<a href="/animali">Torna alla lista dei pazienti</a>`
-    res.send(html)
+    res.send(html + footerHtml)
 })
 
 app.get('/aggiungi', (req, res) => {
-    let html = `
+    let html = headerHtml +`
     <form action="/aggiungi/salva" method="POST" enctype="multipart/form-data">
 
         <label for="name">Nome</label>
@@ -141,7 +164,7 @@ app.get('/aggiungi', (req, res) => {
         <button type="submit">Salva</button>
 
     </form>`
-    res.send(html)
+    res.send(html + footerHtml)
 })
 
 app.post('/aggiungi/salva', upload.single('immagine'), async (req, res) => {
