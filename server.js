@@ -3,7 +3,7 @@ const express = require('express')
 const app = express()
 const port = 3000
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static('public'))
+app.use(express.static('public'))//Rende la cartella public accessibile ad express
 
 //upload file
 const multer = require("multer")
@@ -19,12 +19,12 @@ const storage = multer.diskStorage({
         const nomeAnimale = req.body.name
         const estensione = path.extname(file.originalname)
         const now = Date.now()
-        const nomeFile = nomeAnimale + "-" + now + estensione
+        const nomeFile = nomeAnimale + "-" + now + estensione // crea un nome unico per il file
         cb(null, nomeFile)
     }
 })
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage }); //quando chiamo la funzione upload, multer sa già dove salvare i file e come chiamarli
 
 //Gestione DB
 const mongoose = require('mongoose')
@@ -34,11 +34,11 @@ mongoose.connect('mongodb+srv://prjClinicaUser:1234@cluster0.uuczued.mongodb.net
     .catch(err => console.error('Could not connect to MongoDB', err))
 
 const animaleSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    specie: { type: String, required: true },
-    proprietario: { type: String, required: true },
-    stato: { type: String, required: true },
-    immagine: String
+    name: { type: String, required: true }, //nome dell'animale
+    specie: { type: String, required: true }, //specie dell'animale
+    proprietario: { type: String, required: true }, //nome del proprietario
+    stato: { type: String, required: true }, //stato di salute (Stabile, Critico, In Osservazione, Dimesso)
+    immagine: String //percorso dell'immagine dell'animale
 })
 
 const Animale = mongoose.model('Animale', animaleSchema)
@@ -86,7 +86,9 @@ app.get('/animali', async (req, res) => {
         "Dimesso": 4
     };
 
-    animali.sort((a, b) => {
+    animali.sort((a, b) => {// a e b sono 2 animali confrontati alla volta, se il loro stato risulta negativo,
+    //a viene prima di b, se positivo b viene prima di a, se 0 restano invariati
+    //ordine serveda arrey di decodifica
         return ordine[a.stato] - ordine[b.stato];
     });
 
@@ -107,8 +109,9 @@ app.get('/animali', async (req, res) => {
                         const map = {'Stabile':'stabile','Critico':'critico','In Osservazione':'osservazione'};
                         this.className = 'badge badge-' + map[this.value];
                         window.location.href='/stato/${animale.id}/' + this.value;
-                    ">
-                    <option value="Stabile"         ${animale.stato === 'Stabile' ? 'selected' : ''}>Stabile</option>
+                    ">`
+                + //${animale.stato === 'Stabile' ? 'selected' : ''} serve per selezionare l'opzione che corrisponde allo stato attuale dell'animale +
+                `<option value="Stabile"         ${animale.stato === 'Stabile' ? 'selected' : ''}>Stabile</option>
                     <option value="Critico"         ${animale.stato === 'Critico' ? 'selected' : ''}>Critico</option>
                     <option value="In Osservazione" ${animale.stato === 'In Osservazione' ? 'selected' : ''}>In Osservazione</option>
                 </select>
@@ -135,8 +138,8 @@ app.get(['/dimetti/:id', '/dimetti'], async (req, res) => {
         await Animale.findByIdAndUpdate(req.params.id, { stato: "Dimesso" })
     } else{
         await Animale.updateMany(
-            { stato: "Stabile" },
-            { stato: "Dimesso" }
+            { stato: "Stabile" }, //tutti quelli con stato stabile
+            { stato: "Dimesso" } //vengono aggiornati a dimesso
         )
     }
     res.redirect('/animali')
