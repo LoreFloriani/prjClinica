@@ -110,10 +110,10 @@ app.get('/animali', async (req, res) => {
                         this.className = 'badge badge-' + map[this.value];
                         window.location.href='/stato/${animale.id}/' + this.value;
                     ">`
-                + //${animale.stato === 'Stabile' ? 'selected' : ''} serve per selezionare l'opzione che corrisponde allo stato attuale dell'animale +
-                `<option value="Stabile"         ${animale.stato === 'Stabile' ? 'selected' : ''}>Stabile</option>
-                    <option value="Critico"         ${animale.stato === 'Critico' ? 'selected' : ''}>Critico</option>
+                + //${animale.stato === 'Stabile' ? 'selected' : ''} serve per selezionare l'opzione che corrisponde allo stato attuale dell'animale
+                    `<option value="Critico" ${animale.stato === 'Critico' ? 'selected' : ''}>Critico</option>
                     <option value="In Osservazione" ${animale.stato === 'In Osservazione' ? 'selected' : ''}>In Osservazione</option>
+                    <option value="Stabile" ${animale.stato === 'Stabile' ? 'selected' : ''}>Stabile</option> 
                 </select>
                 <button onclick="window.location.href='/dimetti/${animale.id}'">dimetti</button>
             </div>`
